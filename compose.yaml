@@ -1,0 +1,110 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: flashcart
+      POSTGRES_USER: flashcart
+      POSTGRES_PASSWORD: flashcart
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${FLASHCART_POSTGRES_PORT:-55432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flashcart -d flashcart"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  api:
+    build: .
+    environment:
+      FLASHCART_DATABASE_URL: postgresql://flashcart:flashcart@postgres:5432/flashcart
+      FLASHCART_REDIS_URL: redis://redis:6379/0
+      FLASHCART_ALLOWED_HOSTS: localhost,127.0.0.1,api
+      FLASHCART_ALLOWED_ORIGINS: ${FLASHCART_ALLOWED_ORIGINS:-}
+      FLASHCART_RATE_LIMIT_REQUESTS: ${FLASHCART_RATE_LIMIT_REQUESTS:-30}
+      FLASHCART_RATE_LIMIT_WINDOW_SECONDS: ${FLASHCART_RATE_LIMIT_WINDOW_SECONDS:-60}
+      FLASHCART_SEED_INVENTORY: ${FLASHCART_SEED_INVENTORY:-ITEM_01:100,ITEM_02:50}
+      FLASHCART_EVENT_POLL_SECONDS: ${FLASHCART_EVENT_POLL_SECONDS:-0.5}
+      FLASHCART_SSE_CONNECTIONS_PER_IP: ${FLASHCART_SSE_CONNECTIONS_PER_IP:-10}
+      FLASHCART_REDIS_RECONNECT_SECONDS: ${FLASHCART_REDIS_RECONNECT_SECONDS:-5}
+    ports:
+      - "${FLASHCART_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2)"
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["python", "-m", "app.worker"]
+    environment:
+      FLASHCART_DATABASE_URL: postgresql://flashcart:flashcart@postgres:5432/flashcart
+      FLASHCART_REDIS_URL: redis://redis:6379/0
+      FLASHCART_SEED_INVENTORY: ${FLASHCART_SEED_INVENTORY:-ITEM_01:100,ITEM_02:50}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import pathlib,sys; sys.exit(0 if b'app.worker' in pathlib.Path('/proc/1/cmdline').read_bytes() else 1)"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  postgres-test:
+    image: postgres:16-alpine
+    profiles: ["test"]
+    environment:
+      POSTGRES_DB: flashcart_test
+      POSTGRES_USER: flashcart
+      POSTGRES_HOST_AUTH_METHOD: trust
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flashcart -d flashcart_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  tests:
+    profiles: ["test"]
+    build:
+      context: .
+      target: test
+    environment:
+      FLASHCART_TEST_DATABASE_URL: "postgresql://flashcart@postgres-test:5432/flashcart_test"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    command: ["python", "-m", "unittest", "discover", "-s", "tests", "-v"]
+
+volumes:
+  postgres_data:

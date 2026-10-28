@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="FlashCart secure express checkout">
+    <title>FlashCart Checkout</title>
+    <link rel="stylesheet" href="/checkout.css">
+    <script src="/checkout.js" defer></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="FlashCart home">FlashCart<span>.</span></a>
+        <div class="secure-pill"><span class="secure-icon" aria-hidden="true">✓</span> Secure checkout</div>
+      </header>
+
+      <main class="checkout">
+        <section class="intro-block" aria-labelledby="page-title">
+          <p class="eyebrow"><span class="eyebrow-line"></span> FLASH DROP · EXPRESS CHECKOUT</p>
+          <h1 id="page-title">The good stuff<br>goes <span>fast.</span></h1>
+          <p class="intro">Lock in your request. We’ll reserve available stock and keep you updated in real time.</p>
+        </section>
+
+        <div class="checkout-layout">
+          <section class="form-card" aria-labelledby="form-title">
+            <div class="card-heading">
+              <div>
+                <p class="step-label">YOUR DETAILS</p>
+                <h2 id="form-title">Complete checkout</h2>
+              </div>
+              <span class="step-number">01 <span>/ 01</span></span>
+            </div>
+
+            <form id="checkout-form">
+              <div class="field">
+                <label for="email">Email address</label>
+                <input id="email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com" required>
+              </div>
+
+              <div class="item-fields">
+                <div class="field">
+                  <label for="sku">Choose your item</label>
+                  <select id="sku" name="sku" required>
+                    <option value="ITEM_01">ITEM_01</option>
+                    <option value="ITEM_02">ITEM_02</option>
+                  </select>
+                </div>
+                <div class="field quantity-field">
+                  <label for="quantity">Qty</label>
+                  <input id="quantity" name="quantity" type="number" min="1" max="10" value="1" required>
+                </div>
+              </div>
+              <p id="inventory-list" class="inventory-list"><span class="stock-dot"></span> Loading live stock…</p>
+              <p id="price-summary" class="inventory-list">Price and total will appear here.</p>
+
+              <button id="submit-button" type="submit">
+                <span>Place my request</span><span class="button-arrow" aria-hidden="true">→</span>
+              </button>
+              <p id="message" class="message" role="status" aria-live="polite"></p>
+            </form>
+
+            <div class="card-footnote">
+              <span aria-hidden="true">⌁</span>
+              <p>Your request is protected against duplicate submissions.</p>
+            </div>
+          </section>
+
+          <aside class="side-card" aria-labelledby="side-title">
+            <div class="side-card-top">
+              <span class="drop-tag"><span></span> LIVE DROP</span>
+              <span class="side-spark" aria-hidden="true">✳</span>
+            </div>
+            <p class="side-overline">YOUR CHECKOUT</p>
+            <h2 id="side-title">Quick, fair,<br>and in sync.</h2>
+            <p class="side-copy">Stock is checked at the moment your order is processed. No overselling. No guesswork.</p>
+            <div class="side-divider"></div>
+            <ol class="status-steps">
+              <li><span class="status-step-icon">1</span><span><strong>Request received</strong><small>We’ve got your details</small></span></li>
+              <li><span class="status-step-icon">2</span><span><strong>Stock check</strong><small>Inventory is reserved atomically</small></span></li>
+              <li><span class="status-step-icon">3</span><span><strong>You're updated</strong><small>Follow status live below</small></span></li>
+            </ol>
+            <div class="side-note"><span aria-hidden="true">i</span> Demo checkout · no payment is taken</div>
+          </aside>
+        </div>
+
+        <section class="console" aria-labelledby="console-title">
+          <div class="console-heading">
+            <div class="console-title-group">
+              <span class="console-icon" aria-hidden="true">⌘</span>
+              <div>
+                <p class="step-label">SYSTEM ACTIVITY</p>
+                <h2 id="console-title">Live activity</h2>
+              </div>
+            </div>
+            <span id="console-connection" class="live-indicator">
+              <span class="live-dot"></span><span class="live-label">CONNECTING</span>
+            </span>
+          </div>
+          <ol id="log-console" class="console-log" role="log" aria-live="polite" aria-relevant="additions">
+            <li class="console-empty"><span class="console-pulse"></span> Waiting for checkout and worker events…</li>
+          </ol>
+        </section>
+
+        <footer class="page-footer">
+          <span>FLASHCART<span class="footer-dot">.</span></span>
+          <span>Built for the rush. Designed for fairness.</span>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
